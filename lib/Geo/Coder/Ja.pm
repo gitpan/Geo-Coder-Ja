@@ -6,7 +6,7 @@ use vars qw($VERSION @ISA %EXPORT_TAGS @EXPORT_OK);
 use Carp;
 
 BEGIN {
-    $VERSION = '0.01';
+    $VERSION = '0.02';
     if ($] > 5.006) {
         require XSLoader;
         XSLoader::load(__PACKAGE__, $VERSION);
@@ -59,9 +59,14 @@ sub geocode {
     } else {
         $param{location} = shift;
     }
-    my $location = $param{location}
-        or croak('Usage: geocode(location => $location)');
-    $self->xs_geocode($location);
+    if (!exists $param{location} and !exists $param{postcode}) {
+        croak('Usage: geocode(location => $location) or geocode(postcode => $postcode)');
+    }
+    if (exists $param{location}) {
+        $self->geocode_location($param{location});
+    } else {
+        $self->geocode_postcode($param{postcode});
+    }
 }
 
 1;
@@ -104,9 +109,11 @@ It should be called with following arguments (items with default value are optio
 
 Returns an instance of this module.
 
-=head2 geocode(location => $location)
+=head2 geocode(%param)
 
-Get latitude/longitude from the address.
+geocode(location => $location) or geocode(postcode => $postcode) are supported.
+
+Get latitude/longitude from the address or postcode.
 
 Returns a hashref, contains the following fields:
 

@@ -9,27 +9,33 @@ unless ($ENV{GEOCODER_JA_DBPATH}) {
     exit;
 }
 
-plan tests => 8;
+plan tests => 12;
 
 my $geocoder;
 eval { 
     $geocoder = Geo::Coder::Ja->new(
         dbpath     => $ENV{GEOCODER_JA_DBPATH},
-        encoding   => 'UTF-8',
-        load_level => DB_GYOSEI,
+        encoding   => 'EUC-JP',
+        load_level => DB_CHO,
     );
 };
 
 isa_ok($geocoder, 'Geo::Coder::Ja', 'isa');
-is(sprintf('%s', @$), '', 'init');
+is($@, '', 'init');
 
-is($geocoder->encoding, 'UTF-8', 'encoding');
+is($geocoder->encoding, 'EUC-JP', 'encoding');
 
-my $location = $geocoder->geocode('æ¸‹è°·åŒº');
+my $location = $geocoder->geocode(location => '½ÂÃ«¶è');
 is($location->{latitude}, 35.66075, 'latitude');
 is($location->{longitude}, 139.701305277778, 'longitude');
-is($location->{address}, 'æ±äº¬éƒ½æ¸‹è°·åŒº', 'address');
-is($location->{address_kana}, 'ã¨ã†ãã‚‡ã†ã¨ã—ã¶ã‚„ã', 'address_kana');
+is($location->{address}, 'ÅìµþÅÔ½ÂÃ«¶è', 'address');
+is($location->{address_kana}, '¤È¤¦¤­¤ç¤¦¤È¤·¤Ö¤ä¤¯', 'address_kana');
 
-$geocoder->encoding('EUC-JP');
-is($geocoder->encoding, 'EUC-JP', 'set_encoding');
+$location = $geocoder->geocode(postcode => '0986758');
+is($location->{latitude}, 45.4133611111111, 'latitude');
+is($location->{longitude}, 141.677, 'longitude');
+is($location->{address}, 'ËÌ³¤Æ»ÃÕÆâ»Ô', 'address');
+is($location->{address_kana}, '¤Û¤Ã¤«¤¤¤É¤¦¤ï¤Ã¤«¤Ê¤¤¤·', 'address_kana');
+
+$geocoder->encoding('UTF-8');
+is($geocoder->encoding, 'UTF-8', 'set_encoding');

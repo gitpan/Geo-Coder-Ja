@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 4;
+use Test::More tests => 5;
 
 BEGIN {
     use_ok('Geo::Coder::Ja', ':all');
@@ -9,4 +9,5 @@ BEGIN {
 
 can_ok('Geo::Coder::Ja', 'load');
 can_ok('Geo::Coder::Ja', 'set_encoding');
-can_ok('Geo::Coder::Ja', 'xs_geocode');
+can_ok('Geo::Coder::Ja', 'geocode_location');
+can_ok('Geo::Coder::Ja', 'geocode_postcode');

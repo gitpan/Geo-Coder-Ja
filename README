@@ -31,8 +31,11 @@ METHODS
 
     Returns an instance of this module.
 
-  geocode(location => $location)
-    Get latitude/longitude from the address.
+  geocode(%param)
+    geocode(location => $location) or geocode(postcode => $postcode) are
+    supported.
+
+    Get latitude/longitude from the address or postcode.
 
     Returns a hashref, contains the following fields:
 

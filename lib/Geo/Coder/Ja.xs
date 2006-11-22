@@ -7,6 +7,31 @@
 #include "geocoder.h"
 #include "gcjlib.h"
 
+static SV *
+adr_code2hashref(ADR_CODE *adr_code)
+{
+    int nret, match_level;
+    char kanji[STRMAX + 1], kana[STRMAX + 1];
+    double latitude, longitude;
+    HV *hv;
+    match_level = gcjAdrCode2Str(adr_code, kanji, STRMAX, kana, STRMAX);
+    if (match_level > 0) {
+        nret = gcjAdrCode2Point(adr_code, &latitude, &longitude);
+        if (nret == 0) {
+            hv = newHV();
+            hv_store(hv, "latitude", 8, newSVnv(latitude), 0);
+            hv_store(hv, "longitude", 9, newSVnv(longitude), 0);
+            hv_store(hv, "address", 7, newSVpv(kanji, 0), 0);
+            hv_store(hv, "address_kana", 12, newSVpv(kana, 0), 0);
+            return newRV_noinc((SV *) hv);
+        } else {
+            return &PL_sv_undef;
+        }
+    } else {
+        croak("matched but error when convert to string.");
+    }
+}
+
 static void
 init_constants()
 {
@@ -30,8 +55,8 @@ PROTOTYPES: ENABLE
 SV *
 load(self, dbpath, load_level)
         SV *self;
-        int load_level;
         char *dbpath;
+        int load_level;
     PREINIT:
         int nret;
     CODE:
@@ -59,36 +84,34 @@ set_encoding(self, encoding)
         RETVAL
 
 SV*
-xs_geocode(self, location)
+geocode_location(self, location)
         SV *self;
         char *location;
     PREINIT:
-        SV *sv;
-        HV *hv;
-        int nret, match_length, match_level;
-        char kanji[STRMAX + 1], kana[STRMAX + 1];
-        double latitude, longitude;
+        int match_length;
         ADR_CODE adr_code;
     CODE:
         match_length = gcjAdrStr2Code(location, &adr_code);
         if (match_length > 0) {
-            match_level = gcjAdrCode2Str(&adr_code, kanji, STRMAX, kana, STRMAX);
-            if (match_level > 0) {
-                nret = gcjAdrCode2Point(&adr_code, &latitude, &longitude);
-                if (nret == 0) {
-                    hv = newHV();
-                    hv_store(hv, "latitude", 8, newSVnv(latitude), 0);
-                    hv_store(hv, "longitude", 9, newSVnv(longitude), 0);
-                    hv_store(hv, "address", 7, newSVpv(kanji, 0), 0);
-                    hv_store(hv, "address_kana", 12, newSVpv(kana, 0), 0);
-                    sv = newRV_noinc((SV *) hv);
-                    RETVAL = sv;
-                } else {
-                    RETVAL = &PL_sv_undef;
-                }
-            } else {
-                croak("matched but error when convert to string.");
-            }
+            RETVAL = adr_code2hashref(&adr_code);
+        } else {
+            RETVAL = &PL_sv_undef;
+        }
+    OUTPUT:
+        RETVAL
+
+
+SV*
+geocode_postcode(self, postcode)
+        SV *self;
+        long postcode;
+    PREINIT:
+        int nret;
+        ADR_CODE adr_code;
+    CODE:
+        nret = gcjPost2AdrCode(postcode, &adr_code);
+        if (nret == 0) {
+            RETVAL = adr_code2hashref(&adr_code);
         } else {
             RETVAL = &PL_sv_undef;
         }
