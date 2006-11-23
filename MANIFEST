@@ -3,6 +3,7 @@ MANIFEST
 META.yml # Will be created by "make dist"
 Makefile.PL
 README
+eg/geocoderja
 lib/Geo/Coder/Ja.pm
 lib/Geo/Coder/Ja.xs
 src/ppport.h
